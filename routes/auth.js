@@ -52,9 +52,10 @@ router.post("/signup", [
 
 // POST /login: Authenticate a user (with username OR email)
 router.post("/login", [
-  check('username').notEmpty().withMessage('Username is required'),
+  // Custom validation: either username or email must be provided
+  check('username').optional().notEmpty().withMessage('Username is required'),
   check('password').notEmpty().withMessage('Password is required'),
-  check('email').isEmail().withMessage('A valid email is required')
+  check('email').optional().isEmail().withMessage('A valid email is required')
 ], async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -63,16 +64,31 @@ router.post("/login", [
 
   try {
     const { username, password, email } = req.body;
+
+    // Check if neither username nor email is provided
+    if (!username && !email) {
+      return res.status(400).json({ message: "Username or email is required" });
+    }
+
+    // Build the search condition dynamically based on what's provided
+    const whereCondition = {};
+    if (username) {
+      whereCondition.username = username;
+    } 
+    if (email) {
+      whereCondition.email = email;
+    }
+
+    // Find user by either username or email
     const user = await User.findOne({ 
-      where: { 
-        [Op.or]: [{ username }, { email }]  // Allow login by either username or email
-      }
+      where: whereCondition
     });
 
     if (!user) {
       return res.status(400).json({ message: "Invalid login credentials" });
     }
 
+    // Verify the password
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
