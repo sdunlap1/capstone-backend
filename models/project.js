@@ -8,45 +8,48 @@ const Project = sequelize.define(
     project_id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
-      autoIncrement: true
+      autoIncrement: true,
     },
     name: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
         notEmpty: {
-          msg: "Project name is required."
-        }
-      }
+          msg: "Project name is required.",
+        },
+      },
     },
     description: {
       type: DataTypes.TEXT,
-      allowNull: true
+      allowNull: true,
+    },
+    start_date: {
+      type: DataTypes.DATE,  // Added start_date for multi-day projects
+      allowNull: true,       // Allow it to be null if not provided
     },
     due_date: {
       type: DataTypes.DATE,
-      allowNull: true
+      allowNull: true,
     },
     status: {
       type: DataTypes.STRING,
-      defaultValue: "Active"
+      defaultValue: "Active",
     },
     user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: "users",  // Refers to the 'users' table
-        key: "user_id"
+        key: "user_id",
       },
       onDelete: "CASCADE",
-      onUpdate: "CASCADE"
-    }
+      onUpdate: "CASCADE",
+    },
   },
   {
     tableName: "projects",  // Explicit table name
-    timestamps: true  // Automatically add createdAt and updatedAt
+    timestamps: true,  // Automatically add createdAt and updatedAt
   }
 );
 
 module.exports = Project;
-

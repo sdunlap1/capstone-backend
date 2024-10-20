@@ -28,7 +28,7 @@ router.get("/", authenticateJWT, async (req, res, next) => {
       limit,
       offset,
     });
-
+    console.log("Tasks being returned:", tasks.rows);
     return res.json({
       tasks: tasks.rows,
       totalPages: Math.ceil(tasks.count / limit),
@@ -68,7 +68,7 @@ router.post(
     }
 
     try {
-      const { title, due_date, completed, category_id } = req.body;
+      const { title, due_date, completed, category_id, description } = req.body;
 
       // Create the new task
       const task = await Task.create({
@@ -77,6 +77,7 @@ router.post(
         completed: completed || false, // Default to false if not provided
         user_id: req.user.user_id, // Access user_id from JWT
         category_id: category_id || null, // Default to null if not provided
+        description: description || null, // Add description to the task creation
       });
 
       return res.status(201).json({ task });
@@ -90,7 +91,7 @@ router.post(
 // PUT /tasks/:id: Update a task
 router.put("/:id", authenticateJWT, async (req, res, next) => {
   try {
-    const { title, due_date, completed, category_id } = req.body;
+    const { title, due_date, completed, category_id, description } = req.body;
     const task = await Task.findByPk(req.params.id);
 
     if (!task) {
@@ -101,10 +102,12 @@ router.put("/:id", authenticateJWT, async (req, res, next) => {
       return res.status(403).json({ message: "Unauthorized" }); // Forbidden
     }
 
-    task.title = title;
-    task.due_date = due_date;
-    task.completed = completed;
-    task.category_id = category_id;
+    // Update only the fields that were provided (keep existing values for others)
+    if (title !== undefined) task.title = title;
+    if (due_date !== undefined) task.due_date = due_date;
+    if (completed !== undefined) task.completed = completed;
+    if (category_id !== undefined) task.category_id = category_id;
+    if (description !== undefined) task.description = description;
     await task.save();
 
     return res.json({ task });
