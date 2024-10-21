@@ -13,7 +13,8 @@ router.post("/", authenticateJWT, async (req, res, next) => {
       description: req.body.description,
       start_date: req.body.start_date,  // Include start_date
       due_date: req.body.due_date,  // Include due_date for multi-day projects
-      user_id: req.user.user_id
+      user_id: req.user.user_id,
+      completed: req.body.completed || false,
     });
 
     return res.status(201).json({ project });
@@ -57,7 +58,8 @@ router.put("/:project_id", authenticateJWT, async (req, res, next) => {
     if (req.body.description !== undefined) project.description = req.body.description;
     if (req.body.start_date !== undefined) project.start_date = req.body.start_date;
     if (req.body.due_date !== undefined) project.due_date = req.body.due_date;
-
+    if (req.body.completed !== undefined) project.completed = req.body.completed;
+    
     await project.save();
     return res.json({ project });
   } catch (err) {

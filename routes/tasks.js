@@ -28,7 +28,7 @@ router.get("/", authenticateJWT, async (req, res, next) => {
       limit,
       offset,
     });
-    console.log("Tasks being returned:", tasks.rows);
+    // console.log("Tasks being returned:", tasks.rows);
     return res.json({
       tasks: tasks.rows,
       totalPages: Math.ceil(tasks.count / limit),
@@ -82,8 +82,10 @@ router.post(
 
       return res.status(201).json({ task });
     } catch (err) {
-      console.error("Error creating task:", err);  // Log the actual error
-      return res.status(500).json({ error: "Something went wrong!", details: err.message });
+      console.error("Error creating task:", err); // Log the actual error
+      return res
+        .status(500)
+        .json({ error: "Something went wrong!", details: err.message });
     }
   }
 );
@@ -97,20 +99,45 @@ router.put("/:id", authenticateJWT, async (req, res, next) => {
     if (!task) {
       return res.status(404).json({ message: "Task not found" }); // Not found
     }
+    // Log the completed value from the request body
+    console.log("Received completed value:", completed);
+    console.log("Full request body:", req.body);
+    
+    // Update task fields
+    await task.update(req.body);
+
     if (task.user_id !== req.user.user_id) {
-      // Use user_id
+      // Ensure the user can only update their own tasks
       return res.status(403).json({ message: "Unauthorized" }); // Forbidden
     }
 
-    // Update only the fields that were provided (keep existing values for others)
-    if (title !== undefined) task.title = title;
-    if (due_date !== undefined) task.due_date = due_date;
-    if (completed !== undefined) task.completed = completed;
-    if (category_id !== undefined) task.category_id = category_id;
-    if (description !== undefined) task.description = description;
-    await task.save();
+    // Prepare the fields to update
+    const updatedFields = {};
 
-    return res.json({ task });
+    if (title !== undefined) updatedFields.title = title;
+
+    if (due_date !== undefined) {
+      const parsedDate = new Date(due_date);
+      if (isNaN(parsedDate.getTime())) {
+        return res.status(400).json({ message: "Invalid date format" }); // Bad Request if date is invalid
+      }
+      updatedFields.due_date = parsedDate;
+    }
+
+    if (completed !== undefined) {
+      if (typeof completed !== "boolean") {
+        return res.status(400).json({ message: "Invalid value for completed" }); // Bad Request if completed is not a boolean
+      }
+      updatedFields.completed = completed;
+    }
+
+    if (category_id !== undefined) updatedFields.category_id = category_id;
+    if (description !== undefined) updatedFields.description = description;
+
+    // Use task.update() to update only the provided fields
+    await task.update(updatedFields);
+
+    return res.status(200).json({ task }); // Success with explicit 200 status code
   } catch (err) {
     return next(err);
   }

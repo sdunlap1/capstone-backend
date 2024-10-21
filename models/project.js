@@ -24,12 +24,16 @@ const Project = sequelize.define(
       allowNull: true,
     },
     start_date: {
-      type: DataTypes.DATE,  // Added start_date for multi-day projects
-      allowNull: true,       // Allow it to be null if not provided
+      type: DataTypes.DATE, // Added start_date for multi-day projects
+      allowNull: true, // Allow it to be null if not provided
     },
     due_date: {
       type: DataTypes.DATE,
       allowNull: true,
+    },
+    completed: { 
+      type: DataTypes.BOOLEAN, 
+      defaultValue: false 
     },
     status: {
       type: DataTypes.STRING,
@@ -39,7 +43,7 @@ const Project = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "users",  // Refers to the 'users' table
+        model: "users", // Refers to the 'users' table
         key: "user_id",
       },
       onDelete: "CASCADE",
@@ -47,8 +51,8 @@ const Project = sequelize.define(
     },
   },
   {
-    tableName: "projects",  // Explicit table name
-    timestamps: true,  // Automatically add createdAt and updatedAt
+    tableName: "projects", // Explicit table name
+    timestamps: true, // Automatically add createdAt and updatedAt
   }
 );
 
