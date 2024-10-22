@@ -6,6 +6,7 @@ const { authenticateJWT } = require("../middleware/auth");
 const { check, validationResult } = require("express-validator");
 
 const router = new express.Router();
+const { Op } = require("sequelize");
 
 // GET /tasks: Fetch paginated tasks for the authenticated user
 router.get("/", authenticateJWT, async (req, res, next) => {
@@ -13,13 +14,20 @@ router.get("/", authenticateJWT, async (req, res, next) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
+    const searchTerm = req.query.search || ""; // Get the search term
 
     // Check if category_id is provided in the query parameters
     const category_id = req.query.category_id;
 
-    const whereClause = { user_id: req.user.user_id }; // Always filter by user_id
+    const whereClause = { 
+      user_id: req.user.user_id,
+    [Op.or]: [
+      { title: { [Op.iLike]: `%${searchTerm}%` } }, // Search by title
+      { description: { [Op.iLike]: `%${searchTerm}%`} }, //Search by description
+    ],
+  }; 
     if (category_id) {
-      whereClause.category_id = category_id; // Optional: Add category filter if provided
+      whereClause.category_id = category_id; // Filter by category
     }
 
     // Fetch tasks with pagination and optional category filter

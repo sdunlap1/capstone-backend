@@ -27,12 +27,20 @@ router.post("/", authenticateJWT, async (req, res, next) => {
     return next(err);  // Pass unexpected errors to error handling middleware
   }
 });
+const { Op } = require("sequelize");
 
 // Get all projects for the authenticated user
 router.get("/", authenticateJWT, async (req, res, next) => {
   try {
+    const searchTerm = req.query.search || ""; // Get the search term
+
     const projects = await Project.findAll({
-      where: { user_id: req.user.user_id }
+      where: { user_id: req.user.user_id,
+        [Op.or]: [
+          { name: { [Op.iLike]: `%${searchTerm}%` } }, // search by name
+          { description: { [Op.iLike]: `%${searchTerm}%` } }, // Search by description
+        ]
+       }
     });
     return res.status(200).json({ projects });
   } catch (err) {
