@@ -44,8 +44,12 @@ router.put("/", authenticateJWT, async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Update the user's email if provided
+    // Check if email is already taken when the user updates thier email
     if (email) {
+      const existingUser = await User.findOne({ where: { email } });
+      if (existingUser && existingUser.user_id !== userId) {
+        return res.status(400).json({ message: "Email already in use" }); // This message needs to be consistent
+      }
       user.email = email;
     }
 
