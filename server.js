@@ -9,8 +9,8 @@ sequelize.sync({ alter: true })
   .then(() => {
     console.log("Database connected!");
 
-    app.listen(PORT, function () {
-      console.log(`Server started on http://localhost:${PORT}`);
+    app.listen(PORT, '10.0.4.23', function () {
+      console.log(`Server started on http://10.0.4.23:${PORT}`);
     });
   })
   .catch(err => {
