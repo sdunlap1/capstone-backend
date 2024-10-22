@@ -29,28 +29,37 @@ router.post(
 
     try {
       const { username, password, email } = req.body;
+
+      // Normalize username and email by converting them to lowercase and trimming whitespace
+      const normalizedUsername = username.trim().toLowerCase();
+      const normalizedEmail = email.trim().toLowerCase();
+
+      // Check if the username or email is already taken (case-insensitive)
       const existingUser = await User.findOne({
         where: {
-          [Op.or]: [{ username }, { email }], // Check both username and email
+          [Op.or]: [
+            { username: { [Op.iLike]: normalizedUsername } },  // Case-insensitive check for username
+            { email: { [Op.iLike]: normalizedEmail } }  // Case-insensitive check for email
+          ],
         },
       });
 
       // Check if the username or email is already taken
       if (existingUser) {
-        if (existingUser.username === username) {
+        if (existingUser.username.toLowerCase() === normalizedUsername) {
           return res.status(400).json({ message: "Username already taken" });
         }
-        if (existingUser.email === email) {
+        if (existingUser.email.toLowerCase() === normalizedEmail) {
           return res.status(400).json({ message: "Email already in use" });
         }
       }
 
       const hashedPassword = await bcrypt.hash(password, 12);
 
-      // Create a new user
+      // Create a new user with normalized username and email
       const newUser = await User.create({
-        username,
-        email,
+        username: normalizedUsername,
+        email: normalizedEmail,
         password: hashedPassword,
       });
 
