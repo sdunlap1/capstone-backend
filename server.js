@@ -4,18 +4,15 @@ const app = require("./app");
 const { PORT } = require("./config/config");
 const sequelize = require("./config/sequelize");  // Sequelize connection
 
-// Bind the server to 0.0.0.0
-const HOST = '0.0.0.0';
+// Use localhost on Render and 10.0.4.23 for local development
+const HOST = process.env.NODE_ENV === "production" ? '0.0.0.0' : '10.0.4.23';
 
 // Sync the database and start the server
 sequelize.sync({ alter: true })
   .then(() => {
     console.log("Database connected!");
-
-    const HOST = process.env.HOST || 'localhost'; // Use HOST from environment or default to localhost
-    const PORT = process.env.PORT || 3001;
     
-    app.listen(HOST, PORT, function () {
+    app.listen(PORT, HOST, function () {
       console.log(`Server started on http://${HOST}:${PORT}`);
     });
   })
