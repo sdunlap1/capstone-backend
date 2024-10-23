@@ -5,10 +5,12 @@ require("dotenv").config();
 const SECRET_KEY = process.env.SECRET_KEY || "secret-dev";
 const PORT = +process.env.PORT || 3001;
 
-// Determine which database to use (development, test, or production)
 function getDatabaseUri() {
-  const dbName = process.env.NODE_ENV === "test" ? "taskmanager_test" : process.env.DB_NAME;
-  return `postgresql://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}/${dbName}`;
+  if (process.env.NODE_ENV === "test") {
+    return `postgresql://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}/${process.env.DB_TEST_NAME}`;
+  } else {
+    return process.env.DATABASE_URL || `postgresql://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}/${process.env.DB_NAME}`;
+  }
 }
 
 // Bcrypt work factor (adjust for test vs production)
