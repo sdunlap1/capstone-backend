@@ -20,6 +20,10 @@ const User = sequelize.define('User', {
   password: { 
     type: DataTypes.STRING, 
     allowNull: false 
+  },
+  zip_code: { // Add the zip_code field
+    type: DataTypes.STRING,
+    allowNull: true, // Optional for existing users
   }
 }, {
   tableName: 'users',  // Keep this to prevent Sequelize from creating "Users"

@@ -14,7 +14,7 @@ router.get("/", authenticateJWT, async (req, res, next) => {
 
     // Find the user by user_id
     const user = await User.findByPk(userId, {
-      attributes: ["user_id", "username", "email"], // Only return necessary fields
+      attributes: ["user_id", "username", "email", "zip_code"], // Only return necessary fields
     });
 
     if (!user) {
@@ -25,6 +25,7 @@ router.get("/", authenticateJWT, async (req, res, next) => {
     res.json({
       username: user.username,
       email: user.email,
+      zip_code: user.zip_code,
     });
   } catch (error) {
     return next(error);
@@ -35,7 +36,7 @@ router.get("/", authenticateJWT, async (req, res, next) => {
 router.put("/", authenticateJWT, async (req, res, next) => {
   try {
     const userId = req.user.user_id;
-    const { email, password } = req.body;
+    const { email, password, zip_code } = req.body;
 
     // Find the user by ID
     const user = await User.findByPk(userId);
@@ -62,6 +63,10 @@ router.put("/", authenticateJWT, async (req, res, next) => {
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
       user.password = hashedPassword;
+    }
+
+    if (zip_code) { //update zip code if provided
+      user.zip_code = zip_code;
     }
 
     await user.save(); // Save the updated user details
