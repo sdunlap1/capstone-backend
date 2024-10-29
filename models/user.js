@@ -1,36 +1,51 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/sequelize');
+"use strict"
 
-const User = sequelize.define('User', {
-  user_id: { 
-    type: DataTypes.INTEGER, 
-    primaryKey: true, 
-    autoIncrement: true 
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/sequelize");
+
+const User = sequelize.define(
+  "User",
+  {
+    user_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    username: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+    first_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    last_name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    zip_code: {
+      // Add the zip_code field
+      type: DataTypes.STRING,
+      allowNull: true, // Optional for existing users
+    },
   },
-  username: { 
-    type: DataTypes.STRING, 
-    allowNull: false, 
-    unique: true 
-  },
-  email: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true
-  },
-  password: { 
-    type: DataTypes.STRING, 
-    allowNull: false 
-  },
-  zip_code: { // Add the zip_code field
-    type: DataTypes.STRING,
-    allowNull: true, // Optional for existing users
+  {
+    tableName: "users", // Keep this to prevent Sequelize from creating "Users"
+    timestamps: true,
   }
-}, {
-  tableName: 'users',  // Keep this to prevent Sequelize from creating "Users"
-  timestamps: true
-});
+);
 
-  // Add hooks separately, outside the define call
+// Add hooks separately, outside the define call
 User.beforeCreate((user) => {
   user.username = user.username.toLowerCase();
   user.email = user.email.toLowerCase();

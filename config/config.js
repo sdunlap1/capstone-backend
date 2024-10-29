@@ -24,6 +24,24 @@ console.log("Database URI:", getDatabaseUri());
 console.log("---");
 
 module.exports = {
+   development: {
+    username: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+    host: process.env.DB_HOST,
+    dialect: "postgres",  // Specify the dialect here
+  },
+  test: {
+    username: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_TEST_NAME,
+    host: process.env.DB_HOST,
+    dialect: "postgres",  // Specify the dialect here
+  },
+  production: {
+    use_env_variable: "DATABASE_URL",
+    dialect: "postgres",  // Specify the dialect here
+  },
   SECRET_KEY,
   PORT,
   BCRYPT_WORK_FACTOR,

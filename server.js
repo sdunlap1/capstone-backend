@@ -8,7 +8,7 @@ const sequelize = require("./config/sequelize");  // Sequelize connection
 const HOST = process.env.NODE_ENV === "production" ? '0.0.0.0' : '10.0.4.23';
 
 // Sync the database and start the server
-sequelize.sync({ alter: true })
+sequelize.authenticate()
   .then(() => {
     console.log("Database connected!");
     

@@ -98,11 +98,11 @@ router.post(
   }
 );
 
-// PUT /tasks/:id: Update a task
-router.put("/:id", authenticateJWT, async (req, res, next) => {
+// PUT /tasks/:task_id: Update a task
+router.put("/:task_id", authenticateJWT, async (req, res, next) => {
   try {
     const { title, due_date, completed, category_id, description } = req.body;
-    const task = await Task.findByPk(req.params.id);
+    const task = await Task.findByPk(req.params.task_id);
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" }); // Not found
@@ -151,10 +151,10 @@ router.put("/:id", authenticateJWT, async (req, res, next) => {
   }
 });
 
-// DELETE /tasks/:id: Delete a task
-router.delete("/:id", authenticateJWT, async (req, res, next) => {
+// DELETE /tasks/:task_id: Delete a task
+router.delete("/:task_id", authenticateJWT, async (req, res, next) => {
   try {
-    const task = await Task.findByPk(req.params.id);
+    const task = await Task.findByPk(req.params.task_id);
 
     if (!task || task.user_id !== req.user.user_id) {
       // Use user_id

@@ -5,10 +5,27 @@ const sequelize = require("../config/sequelize");
 const Category = require("./category");
 
 const Task = sequelize.define("Task", {
-  title: { type: DataTypes.STRING, allowNull: false },
-  due_date: { type: DataTypes.DATE, allowNull: true },
-  completed: { type: DataTypes.BOOLEAN, defaultValue: false },
-  description: { type: DataTypes.TEXT, allowNull: true },
+  task_id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  title: { 
+    type: DataTypes.STRING, 
+    allowNull: false 
+  },
+  due_date: { 
+    type: DataTypes.DATE, 
+    allowNull: true 
+  },
+  completed: { 
+    type: DataTypes.BOOLEAN, 
+    defaultValue: false 
+  },
+  description: { 
+    type: DataTypes.TEXT, 
+    allowNull: true 
+  },
   user_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
