@@ -19,6 +19,8 @@ router.post(
       .isLength({ min: 6 })
       .withMessage("Password must be at least 6 characters long"),
     check("email").isEmail().withMessage("A valid email is required"),
+    check("first_name").optional().isString().trim(),
+    check("last_name").optional().isString().trim(),
   ],
   async (req, res, next) => {
     const errors = validationResult(req);
@@ -28,7 +30,7 @@ router.post(
     }
 
     try {
-      const { username, password, email } = req.body;
+      const { username, password, email, first_name, last_name } = req.body;
 
       // Normalize username and email by converting them to lowercase and trimming whitespace
       const normalizedUsername = username.trim().toLowerCase();
@@ -38,8 +40,8 @@ router.post(
       const existingUser = await User.findOne({
         where: {
           [Op.or]: [
-            { username: { [Op.iLike]: normalizedUsername } },  // Case-insensitive check for username
-            { email: { [Op.iLike]: normalizedEmail } }  // Case-insensitive check for email
+            { username: { [Op.iLike]: normalizedUsername } }, // Case-insensitive check for username
+            { email: { [Op.iLike]: normalizedEmail } }, // Case-insensitive check for email
           ],
         },
       });
@@ -61,11 +63,18 @@ router.post(
         username: normalizedUsername,
         email: normalizedEmail,
         password: hashedPassword,
+        first_name: first_name,
+        last_name: last_name,
       });
 
       // Create a JWT token for the user (valid for 1 hour) with user_id
       const token = jwt.sign(
-        { user_id: newUser.user_id, username: newUser.username },
+        {
+          user_id: newUser.user_id,
+          username: newUser.username,
+          first_name: newUser.first_name, // Optional: Include first name
+          last_name: newUser.last_name, // Optional: Include last name
+        },
         SECRET_KEY,
         { expiresIn: "1h" }
       );
@@ -80,13 +89,9 @@ router.post(
 router.post(
   "/login",
   [
-    // Custom validation: either username or email must be provided
+    // Custom validation:
     check("username").optional().notEmpty().withMessage("Username is required"),
     check("password").notEmpty().withMessage("Password is required"),
-    check("email")
-      .optional()
-      .isEmail()
-      .withMessage("A valid email is required"),
   ],
   async (req, res, next) => {
     const errors = validationResult(req);
@@ -97,11 +102,9 @@ router.post(
     try {
       const { username, password, email } = req.body;
 
-      // Check if neither username nor email is provided
-      if (!username && !email) {
-        return res
-          .status(400)
-          .json({ message: "Username or email is required" });
+      // Check if username is not provided
+      if (!username) {
+        return res.status(400).json({ message: "Username is required" });
       }
 
       // Build the search condition dynamically based on what's provided
@@ -115,7 +118,7 @@ router.post(
 
       // Find user by either username or email
       const user = await User.findOne({
-        where: whereCondition,
+        where: { username },
       });
 
       if (!user) {
@@ -131,7 +134,13 @@ router.post(
 
       // Create a JWT token (valid for 1 hour) with user_id
       const token = jwt.sign(
-        { user_id: user.user_id, username: user.username, email: user.email },
+        {
+          user_id: user.user_id,
+          username: user.username,
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+        },
         SECRET_KEY,
         { expiresIn: "1h" }
       );
