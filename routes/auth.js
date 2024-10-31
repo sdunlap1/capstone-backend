@@ -58,9 +58,9 @@ router.post(
 
       const hashedPassword = await bcrypt.hash(password, 12);
 
-      // Create a new user with normalized username and email
+      // Create a new case-sensitive username and lowercase mail.
       const newUser = await User.create({
-        username: normalizedUsername,
+        username: username.trim(),
         email: normalizedEmail,
         password: hashedPassword,
         first_name: first_name,
@@ -100,23 +100,9 @@ router.post(
     }
 
     try {
-      const { username, password, email } = req.body;
+      const { username, password } = req.body;
 
-      // Check if username is not provided
-      if (!username) {
-        return res.status(400).json({ message: "Username is required" });
-      }
-
-      // Build the search condition dynamically based on what's provided
-      const whereCondition = {};
-      if (username) {
-        whereCondition.username = username;
-      }
-      if (email) {
-        whereCondition.email = email;
-      }
-
-      // Find user by either username or email
+      // Search by case-sensitive username
       const user = await User.findOne({
         where: { username },
       });
@@ -125,11 +111,10 @@ router.post(
         return res.status(400).json({ message: "Invalid login credentials" });
       }
 
-      // Verify the password
       const isMatch = await bcrypt.compare(password, user.password);
 
       if (!isMatch) {
-        return res.status(400).json({ message: "Invalid login credentials" });
+        return restatus(400).json({ message: "Invalid login credentials "});
       }
 
       // Create a JWT token (valid for 1 hour) with user_id

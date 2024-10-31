@@ -47,12 +47,10 @@ const User = sequelize.define(
 
 // Add hooks separately, outside the define call
 User.beforeCreate((user) => {
-  user.username = user.username.toLowerCase();
   user.email = user.email.toLowerCase();
 });
 
 User.beforeUpdate((user) => {
-  if (user.username) user.username = user.username.toLowerCase();
   if (user.email) user.email = user.email.toLowerCase();
 });
 
