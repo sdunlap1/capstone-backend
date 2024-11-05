@@ -3,6 +3,7 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const { authenticateJWT } = require("../middleware/auth");
+const { check, validationResult } = require("express-validator");
 const User = require("../models/user");
 
 const router = new express.Router();
@@ -42,55 +43,79 @@ router.get("/", authenticateJWT, async (req, res, next) => {
 });
 
 // PUT /me: Update the current user's email and password
-router.put("/", authenticateJWT, async (req, res, next) => {
-  try {
-    const userId = req.user.user_id;
-    const { email, password, zip_code, first_name, last_name } = req.body;
-
-    // Find the user by ID
-    const user = await User.findByPk(userId);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+router.put(
+  "/",
+  [
+    check("password")
+      .optional({ nullable: true })
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters long"),
+    check("email")
+      .optional({ nullable: true })
+      .isEmail()
+      .withMessage("A valid email is required"),
+    check("first_name").optional({ nullable: true }).isString().trim(),
+    check("last_name").optional({ nullable: true }).isString().trim(),
+  ],
+  authenticateJWT,
+  async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.log("Validation errors:", errors.array());
+      return res.status(400).json({ errors: errors.array() });
     }
+    try {
+      console.log("Received request payload:", req.body);
+      const userId = req.user.user_id;
+      const { email, password, zip_code, first_name, last_name } = req.body;
 
-    // Check if email is already taken when the user updates thier email
-    if (email) {
-      const existingUser = await User.findOne({ where: { email } });
-      if (existingUser && existingUser.user_id !== userId) {
-        return res.status(400).json({ message: "Email already in use" }); // This message needs to be consistent
+      // Find the user by ID
+      const user = await User.findByPk(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
       }
-      user.email = email;
-    }
 
-    // Update the user's password if provided
-    if (password) {
-      user.password = password; // Make sure to hash the password before saving!
-    }
-    const bcrypt = require("bcrypt");
+      // Check if email is already taken when the user updates thier email
+      if (email) {
+        const existingUser = await User.findOne({ where: { email } });
+        if (existingUser && existingUser.user_id !== userId) {
+          return res.status(400).json({ message: "Email already in use" }); // This message needs to be consistent
+        }
+        user.email = email;
+      }
 
-    if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      user.password = hashedPassword;
-    }
+      // Update the user's password if provided
+      if (password) {
+        const hashedPassword = await bcrypt.hash(password, 12);
+        user.password = hashedPassword; 
+      }
+      const bcrypt = require("bcrypt");
 
-    if (zip_code) {
-      //update zip code if provided
-      user.zip_code = zip_code;
-    }
-    if (first_name) {
-      user.first_name = first_name;
-    }
-    if (last_name) {
-      user.last_name = last_name;
-    }
+      if (password) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        user.password = hashedPassword;
+      }
 
-    await user.save(); // Save the updated user details
+      if (zip_code) {
+        //update zip code if provided
+        user.zip_code = zip_code;
+      }
+      if (first_name) {
+        user.first_name = first_name;
+      }
+      if (last_name) {
+        user.last_name = last_name;
+      }
 
-    return res.json({ message: "User information updated successfully." });
-  } catch (error) {
-    return next(error);
+      await user.save(); // Save the updated user details
+
+      return res.json({ message: "User information updated successfully." });
+    } catch (error) {
+      console.log("Error:", error);
+      return next(error);
+    }
   }
-});
+);
 
 module.exports = router;
