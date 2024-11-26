@@ -33,6 +33,22 @@ router.get("/", authenticateJWT, async (req, res, next) => {
     // Fetch tasks with pagination and optional category filter
     const tasks = await Task.findAndCountAll({
       where: whereClause,
+      attributes: [
+        "task_id",
+        "title",
+        "completed",
+        "description",
+        "category_id",
+        [
+          // Format due_date to ISO toString
+          Task.sequelize.fn(
+            "TO_CHAR",
+            Task.sequelize.col("due_date"),
+            "YYYY-MM-DD\"T\"HH24:MI:SS"
+          ),
+          "due_date",
+        ],
+      ],
       limit,
       offset,
     });
