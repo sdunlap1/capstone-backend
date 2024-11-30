@@ -49,6 +49,11 @@ const Project = sequelize.define(
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     },
+    notified_past_due: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
+    },
   },
   {
     tableName: "projects", // Explicit table name
