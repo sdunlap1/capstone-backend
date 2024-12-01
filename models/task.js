@@ -35,7 +35,12 @@ const Task = sequelize.define("Task", {
     type: DataTypes.INTEGER,
     references: { model: "categories", key: "category_id"},
     allowNull: true, // A task doesn't have to have a category
-  }
+  },
+  notified_past_due: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+  },
 }, {
   tableName: 'tasks',  // Keep this to prevent Sequelize from creating "Tasks"
   timestamps: true
